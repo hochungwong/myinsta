@@ -40,10 +40,10 @@ class SignUpActivity : AppCompatActivity() {
         val password = pwd_register.text.toString()
 
         when {
-            TextUtils.isEmpty(fullName) -> Toast.makeText(this, "Full name is required.", Toast.LENGTH_LONG)
-            TextUtils.isEmpty(userName) -> Toast.makeText(this, "User name is required.", Toast.LENGTH_LONG)
-            TextUtils.isEmpty(email) -> Toast.makeText(this, "Email is required.", Toast.LENGTH_LONG)
-            TextUtils.isEmpty(password) -> Toast.makeText(this, "Password is required.", Toast.LENGTH_LONG)
+            TextUtils.isEmpty(fullName) -> Toast.makeText(this, "Full name is required.", Toast.LENGTH_LONG).show()
+            TextUtils.isEmpty(userName) -> Toast.makeText(this, "User name is required.", Toast.LENGTH_LONG).show()
+            TextUtils.isEmpty(email) -> Toast.makeText(this, "Email is required.", Toast.LENGTH_LONG).show()
+            TextUtils.isEmpty(password) -> Toast.makeText(this, "Password is required.", Toast.LENGTH_LONG).show()
 
             else -> {
                 val progressDialog = ProgressDialog(this@SignUpActivity)
@@ -77,7 +77,7 @@ class SignUpActivity : AppCompatActivity() {
         userMap["username"] = userName
         userMap["email"] = email
         userMap["bio"] = "Hey I am using the MyInsta"
-        userMap["userImage"] = "gs://myinsta-7515c.appspot.com/default_images/default_profile.png"
+        userMap["userImage"] = "https://firebasestorage.googleapis.com/v0/b/myinsta-7515c.appspot.com/o/default_images%2Fdefault_profile.png?alt=media&token=c60150b4-6f67-477f-8945-23554f0b38d2"
 
         userRef.child(currentUserID).setValue(userMap).addOnCompleteListener {
             if (it.isSuccessful) {
