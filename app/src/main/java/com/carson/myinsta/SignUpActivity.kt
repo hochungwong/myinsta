@@ -73,11 +73,11 @@ class SignUpActivity : AppCompatActivity() {
 
         val userMap = HashMap<String, Any>()
         userMap["uid"] = currentUserID
-        userMap["fullname"] = fullName
-        userMap["username"] = userName
+        userMap["fullName"] = fullName.toLowerCase()
+        userMap["username"] = userName.toLowerCase()
         userMap["email"] = email
         userMap["bio"] = "Hey I am using the MyInsta"
-        userMap["userImage"] = "https://firebasestorage.googleapis.com/v0/b/myinsta-7515c.appspot.com/o/default_images%2Fdefault_profile.png?alt=media&token=c60150b4-6f67-477f-8945-23554f0b38d2"
+        userMap["userImageUrl"] = "https://firebasestorage.googleapis.com/v0/b/myinsta-7515c.appspot.com/o/default_images%2Fdefault_profile.png?alt=media&token=c60150b4-6f67-477f-8945-23554f0b38d2"
 
         userRef.child(currentUserID).setValue(userMap).addOnCompleteListener {
             if (it.isSuccessful) {

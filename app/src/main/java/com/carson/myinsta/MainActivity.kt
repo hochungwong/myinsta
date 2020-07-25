@@ -1,18 +1,13 @@
 package com.carson.myinsta
 
 import android.os.Bundle
-import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import com.carson.myinsta.Fragment.HomeFragment
-import com.carson.myinsta.Fragment.NotificationsFragment
-import com.carson.myinsta.Fragment.ProfileFragment
-import com.carson.myinsta.Fragment.SearchFragment
+import com.carson.myinsta.fragament.HomeFragment
+import com.carson.myinsta.fragament.NotificationsFragment
+import com.carson.myinsta.fragament.ProfileFragment
+import com.carson.myinsta.fragament.SearchFragment
 
 class MainActivity : AppCompatActivity() {
 

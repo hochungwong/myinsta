@@ -1,4 +1,4 @@
-package com.carson.myinsta.Fragment
+package com.carson.myinsta.fragament
 
 import android.content.Intent
 import android.os.Bundle
