@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "837886099961",
+    "firebase_url": "https://myinsta-7515c.firebaseio.com",
+    "project_id": "myinsta-7515c",
+    "storage_bucket": "myinsta-7515c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837886099961:android:af01b6ebb12e76730cbd28",
+        "android_client_info": {
+          "package_name": "com.carson.myinsta"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "837886099961-5p9q965r1ufc3v04lsm3a6roktiimm81.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6_qXZ4ES36ms0Wd9XE7GOpVQZEcljoUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "837886099961-5p9q965r1ufc3v04lsm3a6roktiimm81.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
