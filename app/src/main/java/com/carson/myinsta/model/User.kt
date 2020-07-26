@@ -65,4 +65,12 @@ class User {
         this.bio = bio
     }
 
+    fun getUID(): String? {
+        return uid
+    }
+
+    fun setUID(uid: String) {
+        this.uid = uid
+    }
+
 }
