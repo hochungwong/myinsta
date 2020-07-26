@@ -94,16 +94,16 @@ class AccountSettingsActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please write bio first.", Toast.LENGTH_LONG).show()
 
             else -> {
-                val fileRef = storageProfilePicRef!!.child(currentUser.uid + ".jpg")
-                val uploadTask: StorageTask<*>
-                uploadTask = fileRef.putFile(imageUri!!)
-
                 val progressDialog = ProgressDialog(this)
                 progressDialog.setTitle("Account Settings")
                 progressDialog.setMessage("Please wait, we are updating your profile...")
                 progressDialog.show()
 
-                uploadTask.continueWithTask( Continuation <UploadTask.TaskSnapshot, Task<Uri>>{ task ->
+                val fileRef = storageProfilePicRef!!.child(currentUser.uid + ".jpg")
+                val uploadTask: StorageTask<*>
+                uploadTask = fileRef.putFile(imageUri!!)
+
+                uploadTask.continueWithTask( Continuation <UploadTask.TaskSnapshot, Task<Uri>> { task ->
                     if (!task.isSuccessful) {
                         task.exception?.let {
                             progressDialog.dismiss()
