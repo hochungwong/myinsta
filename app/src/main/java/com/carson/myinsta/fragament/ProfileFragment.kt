@@ -189,8 +189,9 @@ class ProfileFragment : Fragment() {
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()){
-                    val user = dataSnapshot.getValue<User>(User::class.java)
-                    Picasso.get().load(user!!.getUserImageUrl()).placeholder(R.drawable.profile).fit().into(view?.pro_image_profile_frg)
+                    val user = dataSnapshot.getValue<User>(User::class.java)!!
+                    Log.w(TAG, "imageUrl " + user.getUserImageUrl())
+                    Picasso.get().load(user.getUserImageUrl()).placeholder(R.drawable.profile).fit().into(view?.pro_image_profile_frg)
                     view?.profile_fragment_username?.text = user.getUsername()
                     view?.full_name_profile_frag?.text = user.getFullName()
                     view?.bio_profile_frag?.text = user.getBio()
