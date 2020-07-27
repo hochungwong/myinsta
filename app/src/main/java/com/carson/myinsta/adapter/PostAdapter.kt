@@ -55,6 +55,7 @@ class PostAdapter
         publisherInfo(holder.publisherProfileImage, holder.username, holder.publisher, post.getPublisherId())
         isLikes(post.getPostId(), holder.likeBtn)
         retrieveNumberOfLikes(holder.likes, post.getPostId())
+        retrieveNumberOfComments(holder.comments, post.getPostId())
         //like btn onClickListener
         holder.likeBtn.setOnClickListener {
             //save likes and unlike
@@ -83,6 +84,12 @@ class PostAdapter
             intent.putExtra("publisherId", post.getPublisherId())
             mContext.startActivity(intent)
         }
+        holder.comments.setOnClickListener {
+            val intent = Intent(mContext, CommentsActivity::class.java)
+            intent.putExtra("postId", post.getPostId())
+            intent.putExtra("publisherId", post.getPublisherId())
+            mContext.startActivity(intent)
+        }
     }
 
     private fun retrieveNumberOfLikes(likes: TextView, postId: String) {
@@ -95,6 +102,22 @@ class PostAdapter
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     likes.text = "${snapshot.childrenCount.toString()} likes"
+                }
+            }
+
+        })
+    }
+
+    private fun retrieveNumberOfComments(comments: TextView, postId: String) {
+        val commentsRef =  FirebaseDatabase.getInstance().reference.child("Comments")
+            .child(postId)
+        commentsRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    comments.text = "View all ${snapshot.childrenCount.toString()} Comments"
                 }
             }
 
