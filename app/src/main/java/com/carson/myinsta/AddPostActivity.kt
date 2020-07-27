@@ -58,7 +58,7 @@ class AddPostActivity : AppCompatActivity() {
     private fun uploadPostImage() {
         when {
             imageUri == null -> Toast.makeText(this, "Please select a post image.", Toast.LENGTH_LONG).show()
-            TextUtils.isEmpty(description_new_post.text.toString()) -> Toast.makeText(this, "Please write some description for your post.", Toast.LENGTH_LONG).show()
+            //TextUtils.isEmpty(description_new_post.text.toString()) -> Toast.makeText(this, "Please write some description for your post.", Toast.LENGTH_LONG).show()
             else -> {
                 val progressDialog = ProgressDialog(this)
                 progressDialog.setTitle("Account Settings")
@@ -82,15 +82,15 @@ class AddPostActivity : AppCompatActivity() {
                         val downloadUrl = it.result
                         mUrl = downloadUrl.toString()
 
-                        val postsRef = FirebaseDatabase.getInstance().reference.child("Posts").child(currentUser!!.uid)
+                        val postsRef = FirebaseDatabase.getInstance().reference.child("Posts")
                         val postId = postsRef.push().key// generate an id automatically
                         val postsMap = HashMap<String, Any>()
-                        postsMap["postId"] = postId!!
+                        postsMap["postId"] = postId!!.toString()
                         postsMap["description"] = description_new_post.text.toString()
-                        postsMap["publisher"] = currentUser!!.uid
+                        postsMap["publisherId"] = currentUser!!.uid
                         postsMap["postImageUrl"] = mUrl
 
-                        postsRef.child(postId).updateChildren(postsMap).addOnCompleteListener { it1 ->
+                        postsRef.child(postId.toString()).updateChildren(postsMap).addOnCompleteListener { it1 ->
                             if (it1.isSuccessful) {
                                 progressDialog.dismiss()
                                 Toast.makeText(this, "Post has been uploaded successfully", Toast.LENGTH_LONG).show()

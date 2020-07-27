@@ -1,11 +1,21 @@
 package com.carson.myinsta.fragament
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.carson.myinsta.R
+import com.carson.myinsta.adapter.PostAdapter
+import com.carson.myinsta.model.Post
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -19,8 +29,17 @@ private const val ARG_PARAM2 = "param2"
  */
 class HomeFragment : Fragment() {
     // TODO: Rename and change types of parameters
+
+    private final var TAG: String = HomeFragment::class.java.simpleName
+
+    private var postAdapter: PostAdapter? = null
+    private var postsList: MutableList<Post>? = null
+    private var followingList: MutableList<String>? = null
+
     private var param1: String? = null
     private var param2: String? = null
+
+    var recyclerView: RecyclerView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +54,71 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false)
+        val view =  inflater.inflate(R.layout.fragment_home, container, false)
+
+        recyclerView = view.findViewById(R.id.recycler_view_home)
+        val linearLayoutManager = LinearLayoutManager(context)
+        linearLayoutManager.reverseLayout = true //newest at the top
+        linearLayoutManager.stackFromEnd = true
+        recyclerView?.layoutManager = linearLayoutManager
+
+        postsList = ArrayList()
+        postAdapter = context?.let {
+            PostAdapter(it, postsList as ArrayList<Post>)
+        }
+
+        recyclerView?.adapter = postAdapter
+
+        checkFollowings()
+
+        return view
+    }
+
+    private fun checkFollowings() {
+        followingList = ArrayList()
+        val followingRef = FirebaseDatabase.getInstance().reference.child("Follow")
+                .child(FirebaseAuth.getInstance().currentUser!!.uid) // currentUser
+                .child("Following")
+        followingRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    (followingList as ArrayList<String>).clear()
+                    for (snapshot in dataSnapshot.children) {
+                        snapshot.key?.let {
+                            //find all the followings ids
+                            //use them to retrieve posts
+                            (followingList as ArrayList<String>).add(it)
+                        }
+                        retrievePosts()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun retrievePosts() {
+        val postsRef = FirebaseDatabase.getInstance().reference.child("Posts")
+        postsRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                postsList?.clear()
+                for (snapshot in dataSnapshot.children) {
+                    val post = snapshot.getValue(Post::class.java)
+                    //check publisher
+                    for (followingId in (followingList as ArrayList<String>)) {
+                        if (post!!.getPublisherId() == followingId) {
+                            postsList!!.add(post as Post)
+                        }
+                        postAdapter!!.notifyDataSetChanged()
+                    }
+                }
+            }
+        })
     }
 
     companion object {
