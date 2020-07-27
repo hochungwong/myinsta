@@ -43,7 +43,7 @@ class PostAdapter
         val post = mPosts[position]
         currentUser = FirebaseAuth.getInstance().currentUser
 
-        Picasso.get().load(post.getPostImageUrl()).into(holder.postImage)
+        Picasso.get().load(post.getPostImageUrl()).placeholder(R.drawable.camera).fit().into(holder.postImage)
         if (TextUtils.isEmpty(post.getDescription())){
             holder.description.visibility = View.GONE
         } else {

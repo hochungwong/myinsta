@@ -1,4 +1,4 @@
-package com.carson.myinsta.fragament
+package com.carson.myinsta.fragment
 
 import android.content.Context
 import android.content.Intent
@@ -8,8 +8,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.carson.myinsta.AccountSettingsActivity
 import com.carson.myinsta.R
+import com.carson.myinsta.adapter.MyImageAdapter
+import com.carson.myinsta.model.Post
 import com.carson.myinsta.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -19,6 +24,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_profile.view.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -40,6 +47,13 @@ class ProfileFragment : Fragment() {
     private lateinit var profileId: String
     private lateinit var currentUser: FirebaseUser
 
+    private var postsList: MutableList<Post>? = null
+    private var recyclerViewUploadPics: RecyclerView? = null
+    private var recyclerViewSavePics: RecyclerView? = null
+    private var gridLayoutManager: LinearLayoutManager? = null
+
+    private var myImageAdapter: MyImageAdapter? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -60,20 +74,36 @@ class ProfileFragment : Fragment() {
         if (pref != null) {
             profileId = pref.getString("profileId", "none")!!
         }
-        Log.w(TAG, "profileId $profileId" + " currentUserId ${currentUser.uid}")
+
         if (profileId == currentUser.uid) {
             //user on profile, myself
             view.edit_account_settings_btn.text = "Edit Profile"
         } else if (profileId != currentUser.uid) {
             checkFollowAndFollowingButtonStatus()
         }
+
+        //init grid view recyclerView
+        recyclerViewUploadPics = view.findViewById(R.id.recycler_view_user_pic_grid_view)
+        recyclerViewUploadPics?.setHasFixedSize(true)
+        recyclerViewSavePics = view.findViewById(R.id.recycler_view_save_pic_grid_view)
+
+        //layout manager
+        gridLayoutManager = GridLayoutManager(context, 3) // 3 items each row
+        //set layout manager for upload pics view
+        recyclerViewUploadPics?.layoutManager = gridLayoutManager
+        //set upload pics adapter
+        postsList = ArrayList<Post>()
+        myImageAdapter = context?.let {
+            MyImageAdapter(it, postsList as ArrayList<Post>)
+        }
+        recyclerViewUploadPics?.adapter = myImageAdapter
+
         //set edit account
         view.edit_account_settings_btn.setOnClickListener {
-            val getButtonText = view.edit_account_settings_btn.text.toString()
-            when {
-                getButtonText == "Edit Profile" -> startActivity(Intent(context, AccountSettingsActivity::class.java))
+            when (view.edit_account_settings_btn.text.toString()) {
+                "Edit Profile" -> startActivity(Intent(context, AccountSettingsActivity::class.java))
                 //follow in profile page
-                getButtonText == "Follow" -> {
+                "Follow" -> {
                     //add to Followings list
                     currentUser.uid.let { it1 ->
                         FirebaseDatabase.getInstance().reference.child("Follow")
@@ -92,7 +122,7 @@ class ProfileFragment : Fragment() {
                     }
                 }
                 //un-follow in profile page
-                getButtonText == "Following" -> {
+                "Following" -> {
                     //remove form Followings list
                     currentUser.uid.let { it1 ->
                         FirebaseDatabase.getInstance().reference.child("Follow")
@@ -112,36 +142,38 @@ class ProfileFragment : Fragment() {
                 }
             }
         }
-
-        getFollowers()
-        getFollowings()
-        userInfo()
-
         return view
     }
 
+    override fun onStart() {
+        super.onStart()
+        getFollowers()
+        getFollowings()
+        userInfo()
+        retrieveUserPhotos()
+
+    }
+
     private fun checkFollowAndFollowingButtonStatus() {
-        val followingsRef = currentUser?.uid.let {
+        val followingsRef = currentUser.uid.let {
             FirebaseDatabase.getInstance().reference.child("Follow")
                 .child(it.toString()) // currentUser
                 .child("Following")
         }
-        if (followingsRef != null) {
-            followingsRef.addValueEventListener(object: ValueEventListener {
-                override fun onCancelled(error: DatabaseError) {
-                }
+        followingsRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+            }
 
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (dataSnapshot.child(profileId).exists()) {
-                        //find the following user
-                        view?.edit_account_settings_btn?.text = "Following"
-                    } else {
-                        view?.edit_account_settings_btn?.text = "Follow"
-                    }
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.child(profileId).exists()) {
+                    //find the following user
+                    view?.edit_account_settings_btn?.text = "Following"
+                } else {
+                    view?.edit_account_settings_btn?.text = "Follow"
                 }
+            }
 
-            })
-        }
+        })
     }
 
     private fun getFollowers() {
@@ -195,6 +227,28 @@ class ProfileFragment : Fragment() {
                     view?.profile_fragment_username?.text = user.getUsername()
                     view?.full_name_profile_frag?.text = user.getFullName()
                     view?.bio_profile_frag?.text = user.getBio()
+                }
+            }
+
+        })
+    }
+
+    private fun retrieveUserPhotos() {
+        val postsRef = FirebaseDatabase.getInstance().reference.child("Posts")
+        postsRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {}
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    (postsList as ArrayList<Post>).clear()
+                    for (snapshot in dataSnapshot.children) {
+                        val post = snapshot.getValue(Post::class.java)
+                        if (post?.getPublisherId().equals(currentUser.uid)) {
+                            (postsList as ArrayList<Post>).add(post!!)
+                        }
+                        (postsList as ArrayList<Post>).reverse()
+                        myImageAdapter!!.notifyDataSetChanged()
+                    }
                 }
             }
 

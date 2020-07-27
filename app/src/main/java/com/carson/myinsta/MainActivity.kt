@@ -5,10 +5,10 @@ import android.os.Bundle
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.carson.myinsta.fragament.HomeFragment
-import com.carson.myinsta.fragament.NotificationsFragment
-import com.carson.myinsta.fragament.ProfileFragment
-import com.carson.myinsta.fragament.SearchFragment
+import com.carson.myinsta.fragment.HomeFragment
+import com.carson.myinsta.fragment.NotificationsFragment
+import com.carson.myinsta.fragment.ProfileFragment
+import com.carson.myinsta.fragment.SearchFragment
 
 class MainActivity : AppCompatActivity() {
 

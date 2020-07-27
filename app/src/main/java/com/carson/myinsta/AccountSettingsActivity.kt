@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
 import android.widget.Toast
-import com.carson.myinsta.fragament.ProfileFragment
 import com.carson.myinsta.model.User
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task

@@ -3,8 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragament.ProfileFragment">
-
+    tools:context=".fragment.ProfileFragment">
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,15 +42,15 @@
 
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
-    <ScrollView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:id="@+id/scroll_view"
         android:layout_below="@+id/app_bar_layout_profile"
         >
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             >
             <LinearLayout
@@ -217,6 +216,18 @@
                     style="?android:attr/buttonBarButtonStyle"
                     />
             </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="2dp"
+                android:layout_marginStart="2dp"
+                android:layout_gravity="center"
+                android:id="@+id/recycler_view_user_pic_grid_view"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/recycler_view_save_pic_grid_view"/>
         </LinearLayout>
-    </ScrollView>
+    </RelativeLayout>
 </RelativeLayout>
