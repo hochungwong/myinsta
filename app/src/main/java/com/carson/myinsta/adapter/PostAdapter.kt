@@ -24,7 +24,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
-import kotlinx.android.synthetic.main.activity_account_settings.*
 
 class PostAdapter
     (private var mContext: Context, private var mPosts: List<Post>) : RecyclerView.Adapter<PostAdapter.ViewHolder>() {
@@ -32,7 +31,7 @@ class PostAdapter
 
     private var currentUser: FirebaseUser? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(mContext).inflate(R.layout.post_layout, parent, false)
+        val view = LayoutInflater.from(mContext).inflate(R.layout.post_item_layout, parent, false)
         return PostAdapter.ViewHolder(view)
     }
 
@@ -163,10 +162,7 @@ class PostAdapter
     private fun publisherInfo(publisherProfileImage: CircleImageView, usernameTextView: TextView, publisherTextView: TextView, publisherId: String) {
         val userRef = FirebaseDatabase.getInstance().reference.child("Users").child(publisherId)
         userRef.addValueEventListener(object: ValueEventListener {
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-
+            override fun onCancelled(error: DatabaseError) {}
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
                     val user = dataSnapshot.getValue<User>(User::class.java)

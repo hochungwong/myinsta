@@ -4,7 +4,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.TokenWatcher
 import android.text.TextUtils
+import android.util.Log
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.carson.myinsta.adapter.CommentAdapter
+import com.carson.myinsta.model.Comment
+import com.carson.myinsta.model.Post
 import com.carson.myinsta.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -17,10 +23,18 @@ import kotlinx.android.synthetic.main.activity_account_settings.*
 import kotlinx.android.synthetic.main.activity_comments.*
 
 class CommentsActivity : AppCompatActivity() {
+    private final var TAG: String = CommentsActivity::class.java.simpleName
+
     private var postId: String? = null
     private var publisherId: String? = null
 
     private var currentUser: FirebaseUser? = null
+
+    private var commentsList: MutableList<Comment>? = null
+
+    private var commentAdapter: CommentAdapter? = null
+    private var recyclerView: RecyclerView? = null
+    private var linearLayoutManager: LinearLayoutManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,17 +45,32 @@ class CommentsActivity : AppCompatActivity() {
 
         currentUser = FirebaseAuth.getInstance().currentUser
 
+        commentsList = ArrayList<Comment>()
+        recyclerView = findViewById(R.id.recycler_view_comments)
+        linearLayoutManager = LinearLayoutManager(this)
+        commentAdapter = CommentAdapter(this, commentsList as ArrayList<Comment>)
+
+        linearLayoutManager!!.reverseLayout = true
+        recyclerView!!.layoutManager = linearLayoutManager
+
+        recyclerView!!.adapter = commentAdapter
+
         publish_comment_tv_btn.setOnClickListener {
             when {
                 TextUtils.isEmpty(add_comment_edit_text!!.text.toString()) ->
-                    Toast.makeText(this@CommentsActivity, "Please write some comments before publish", Toast.LENGTH_LONG)
+                    Toast.makeText(this@CommentsActivity, "Please write some comments before publish", Toast.LENGTH_LONG).show()
                 else -> {
                     addComment()
                 }
             }
         }
+    }
 
+    override fun onStart() {
+        super.onStart()
         retrieveUserInfo()
+        readComments()
+        getPostImage()
     }
 
     private fun addComment() {
@@ -72,6 +101,45 @@ class CommentsActivity : AppCompatActivity() {
                 if (dataSnapshot.exists()){
                     val user = dataSnapshot.getValue<User>(User::class.java)
                     Picasso.get().load(user!!.getUserImageUrl()).placeholder(R.drawable.profile).fit().into(profile_image_comment)
+                }
+            }
+
+        })
+    }
+
+    private fun getPostImage() {
+        val postsImageRef = FirebaseDatabase.getInstance().reference
+            .child("Posts")
+            .child(postId!!)
+            .child("postImageUrl")
+        postsImageRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {}
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()){
+                    val postImageUrl = dataSnapshot.value.toString()
+                    Picasso.get().load(postImageUrl).placeholder(R.drawable.profile).fit().into(post_image_comments)
+                }
+            }
+
+        })
+    }
+
+    private fun readComments() {
+        val commentsRef = FirebaseDatabase.getInstance().reference
+            .child("Comments")
+            .child(postId!!)
+        commentsRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {}
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    commentsList!!.clear()
+                    for (snapshot in dataSnapshot.children) {
+                        val comment = snapshot.getValue(Comment::class.java)
+                        commentsList!!.add(comment!!)
+                    }
+                    commentAdapter!!.notifyDataSetChanged()
                 }
             }
 
