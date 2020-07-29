@@ -2,6 +2,7 @@ package com.carson.myinsta.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.media.Image
 import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
@@ -52,9 +53,10 @@ class PostAdapter
         }
 
         publisherInfo(holder.publisherProfileImage, holder.username, holder.publisher, post.getPublisherId())
-        isLikes(post.getPostId(), holder.likeBtn)
+        checkLikeStatus(post.getPostId(), holder.likeBtn)
         retrieveNumberOfLikes(holder.likes, post.getPostId())
         retrieveNumberOfComments(holder.comments, post.getPostId())
+        checkSavedStatus(post.getPostId(), holder.savePostBtn)
         //like btn onClickListener
         holder.likeBtn.setOnClickListener {
             //save likes and unlike
@@ -72,8 +74,26 @@ class PostAdapter
                     .child(currentUser!!.uid)
                     .removeValue()
 
-                val intent = Intent(mContext, MainActivity::class.java)
-                mContext.startActivity(intent)
+//                val intent = Intent(mContext, MainActivity::class.java)
+//                mContext.startActivity(intent)
+            }
+        }
+        //save post btn
+        holder.savePostBtn.setOnClickListener {
+            if (holder.savePostBtn.tag == "Save") {
+                //not saved yet
+                FirebaseDatabase.getInstance().reference
+                    .child("Saves")
+                    .child(currentUser!!.uid)
+                    .child(post.getPostId())
+                    .setValue(true)
+            } else {
+                //remove saved post
+                FirebaseDatabase.getInstance().reference
+                    .child("Saves")
+                    .child(currentUser!!.uid)
+                    .child(post.getPostId())
+                    .removeValue()
             }
         }
         //comment btn
@@ -89,6 +109,7 @@ class PostAdapter
             intent.putExtra("publisherId", post.getPublisherId())
             mContext.startActivity(intent)
         }
+
     }
 
     private fun retrieveNumberOfLikes(likes: TextView, postId: String) {
@@ -123,7 +144,7 @@ class PostAdapter
         })
     }
 
-    private fun isLikes(postId: String, likeBtn: ImageView) {
+    private fun checkLikeStatus(postId: String, likeBtn: ImageView) {
         val likesRef =  FirebaseDatabase.getInstance().reference.child("Likes")
             .child(postId)
 
@@ -143,6 +164,26 @@ class PostAdapter
                 }
             }
 
+        })
+    }
+
+    private fun checkSavedStatus(postId: String, saveBtnImageView: ImageView) {
+        val savesRef = FirebaseDatabase.getInstance().reference
+            .child("Saves")
+            .child(currentUser!!.uid)
+        savesRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.child(postId).exists()) {
+                    saveBtnImageView.setImageResource(R.drawable.save_large_icon)
+                    saveBtnImageView.tag = "Saved"
+                } else {
+                    saveBtnImageView.setImageResource(R.drawable.save_unfilled_large_icon)
+                    saveBtnImageView.tag = "Save"
+                }
+            }
         })
     }
 
