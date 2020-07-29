@@ -6,8 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.NonNull
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.carson.myinsta.R
+import com.carson.myinsta.fragment.PostDetailsFragment
 import com.carson.myinsta.model.Post
 import com.squareup.picasso.Picasso
 
@@ -24,6 +26,16 @@ class MyImageAdapter (private var mContext: Context, private var mMyPosts: List<
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var myPost = mMyPosts[position]
         Picasso.get().load(myPost.getPostImageUrl()).placeholder(R.drawable.camera).fit().into(holder.myPostImage)
+
+        holder.myPostImage?.setOnClickListener {
+            val editor = mContext.getSharedPreferences("PREFS", Context.MODE_PRIVATE).edit()
+            editor.putString("postId", myPost.getPostId())
+            editor.apply()
+            //transition
+            (mContext as FragmentActivity).supportFragmentManager.beginTransaction().replace(
+                R.id.fragment_container, PostDetailsFragment()
+            ).commit()
+        }
     }
 
     class ViewHolder(@NonNull itemView: View): RecyclerView.ViewHolder(itemView) {
