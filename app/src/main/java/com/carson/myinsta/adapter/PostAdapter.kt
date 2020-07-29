@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.carson.myinsta.CommentsActivity
 import com.carson.myinsta.MainActivity
 import com.carson.myinsta.R
+import com.carson.myinsta.ShowUsersActivity
 import com.carson.myinsta.model.Post
 import com.carson.myinsta.model.User
 import com.google.firebase.auth.FirebaseAuth
@@ -107,6 +108,12 @@ class PostAdapter
             val intent = Intent(mContext, CommentsActivity::class.java)
             intent.putExtra("postId", post.getPostId())
             intent.putExtra("publisherId", post.getPublisherId())
+            mContext.startActivity(intent)
+        }
+        holder.likes.setOnClickListener {
+            val intent = Intent(mContext, ShowUsersActivity::class.java)
+            intent.putExtra("id", post.getPostId())
+            intent.putExtra("title", "likes")
             mContext.startActivity(intent)
         }
 

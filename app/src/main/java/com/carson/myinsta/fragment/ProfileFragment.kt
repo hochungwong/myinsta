@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.carson.myinsta.AccountSettingsActivity
 import com.carson.myinsta.R
+import com.carson.myinsta.ShowUsersActivity
 import com.carson.myinsta.adapter.MyImageAdapter
 import com.carson.myinsta.model.Post
 import com.carson.myinsta.model.User
@@ -120,6 +121,10 @@ class ProfileFragment : Fragment() {
         recyclerViewSavePics?.adapter = savedImageAdapter
 
         //default showing my posted image
+        if (currentUser!!.uid != profileId) {
+            recyclerViewSavePics?.visibility = View.GONE
+            view.image_save_view_btn.visibility = View.GONE
+        }
         recyclerViewSavePics?.visibility = View.GONE
         recyclerViewUploadPics?.visibility = View.VISIBLE
         //display my posted images
@@ -177,6 +182,18 @@ class ProfileFragment : Fragment() {
                 }
             }
         }
+        view.total_followers.setOnClickListener {
+            val intent = Intent(context, ShowUsersActivity::class.java)
+            intent.putExtra("id", profileId)
+            intent.putExtra("title", "followers")
+            startActivity(intent)
+        }
+        view.total_following.setOnClickListener {
+            val intent = Intent(context, ShowUsersActivity::class.java)
+            intent.putExtra("id", profileId)
+            intent.putExtra("title", "following")
+            startActivity(intent)
+        }
         return view
     }
 
@@ -226,7 +243,6 @@ class ProfileFragment : Fragment() {
                     view?.total_followers?.text = "0"
                 }
             }
-
         })
     }
 
