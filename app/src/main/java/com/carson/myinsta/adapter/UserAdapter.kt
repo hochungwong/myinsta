@@ -1,6 +1,7 @@
 package com.carson.myinsta.adapter
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import android.widget.TextView
 import androidx.annotation.NonNull
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.carson.myinsta.MainActivity
 import com.carson.myinsta.R
 import com.carson.myinsta.fragment.ProfileFragment
 import com.carson.myinsta.model.User
@@ -18,10 +20,12 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
 
-class UserAdapter(private var mContext: Context, private var mUsers: List<User>, private var isFragment: Boolean = false)
+class UserAdapter(private var mContext: Context, private var mUsers: List<User>, private var isFragment: Boolean = false, private var isShowUsers: Boolean = false)
     : RecyclerView.Adapter<UserAdapter.ViewHolder>(){
 
     private var currentUser: FirebaseUser? = FirebaseAuth.getInstance().currentUser
@@ -49,12 +53,25 @@ class UserAdapter(private var mContext: Context, private var mUsers: List<User>,
         checkFollowingStatus(user.getUID(), holder.followButton)
 
         holder.itemView.setOnClickListener {
-            val pref = mContext.getSharedPreferences("PREFS", Context.MODE_PRIVATE).edit()
-            pref.putString("profileId", user.getUID())
-            pref.apply()
-
-            (mContext as FragmentActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, ProfileFragment()).commit()
+            if (isFragment) {
+                val pref = mContext.getSharedPreferences("PREFS", Context.MODE_PRIVATE).edit()
+                pref.putString("profileId", user.getUID())
+                pref.apply()
+                (mContext as FragmentActivity).supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, ProfileFragment()).commit()
+//                if (isShowUsers) {
+//                    //in show user activity
+//                    val intent = Intent(mContext, ProfileFragment::class.java)
+//                    mContext.startActivity(intent)
+//                } else {
+//                    (mContext as FragmentActivity).supportFragmentManager.beginTransaction()
+//                        .replace(R.id.fragment_container, ProfileFragment()).commit()
+//                }
+            } else {
+                val intent = Intent(mContext, MainActivity::class.java)
+                intent.putExtra("publisherId", user.getUID())
+                mContext.startActivity(intent)
+            }
         }
 
         //user can't follow themself
@@ -85,6 +102,7 @@ class UserAdapter(private var mContext: Context, private var mUsers: List<User>,
                             }
                         }
                 }
+                addFollowNotification(user.getUID()!!)
             } else {
                 //un-follow
                 currentUser?.uid.let { it1 ->
@@ -138,10 +156,24 @@ class UserAdapter(private var mContext: Context, private var mUsers: List<User>,
                     followButton.text = "Follow"
                 }
             }
-
         })
     }
 
+    private fun addFollowNotification(followeeId: String) {
+        val notificationsRef = Firebase.database.reference
+            .child("Notifications")
+            .child(followeeId)//to whom is followed
+        val notificationMap = HashMap<String, Any>()
+        notificationMap["userId"] = currentUser!!.uid
+        notificationMap["description"] = "start following you"
+        notificationMap["postId"] = ""
+        notificationMap["isPost"] = false
+        notificationsRef.push().setValue(notificationMap).addOnCompleteListener {
+            if (it.isSuccessful) {
+
+            }
+        }
+    }
 }
 
 

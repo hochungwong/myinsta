@@ -18,6 +18,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_account_settings.*
 import kotlinx.android.synthetic.main.activity_comments.*
@@ -83,6 +85,7 @@ class CommentsActivity : AppCompatActivity() {
         //push() generate comment random key
         commentsRef.push().setValue(commentMap).addOnCompleteListener {
             if (it.isSuccessful) {
+                addCommentNotification()
                 add_comment_edit_text!!.text.clear()
             } else {
                 it.exception?.let {it1 ->
@@ -121,7 +124,6 @@ class CommentsActivity : AppCompatActivity() {
                     Picasso.get().load(postImageUrl).placeholder(R.drawable.profile).fit().into(post_image_comments)
                 }
             }
-
         })
     }
 
@@ -142,7 +144,22 @@ class CommentsActivity : AppCompatActivity() {
                     commentAdapter!!.notifyDataSetChanged()
                 }
             }
-
         })
+    }
+
+    private fun addCommentNotification() {
+        val notificationsRef = Firebase.database.reference
+            .child("Notifications")
+            .child(publisherId!!)
+        val notificationMap = HashMap<String, Any>()
+        notificationMap["userId"] = currentUser!!.uid
+        notificationMap["description"] = "commented: ${add_comment_edit_text.text.toString()}"
+        notificationMap["postId"] = postId!!
+        notificationMap["isPost"] = true
+        notificationsRef.push().setValue(notificationMap).addOnCompleteListener {
+            if (it.isSuccessful) {
+
+            }
+        }
     }
 }

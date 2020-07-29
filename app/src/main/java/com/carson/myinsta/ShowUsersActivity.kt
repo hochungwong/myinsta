@@ -56,7 +56,7 @@ class ShowUsersActivity : AppCompatActivity() {
 
         usersList = ArrayList<User>()
         idsList = ArrayList<String>() // users ids list
-        userAdapter = UserAdapter(this, usersList as ArrayList<User>, false)
+        userAdapter = UserAdapter(this, usersList as ArrayList<User>, isFragment = true, isShowUsers = true)
         recyclerView?.adapter = userAdapter
     }
 

@@ -24,8 +24,11 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.android.synthetic.main.activity_comments.*
 
 class PostAdapter
     (private var mContext: Context, private var mPosts: List<Post>) : RecyclerView.Adapter<PostAdapter.ViewHolder>() {
@@ -68,6 +71,8 @@ class PostAdapter
                     .child(post.getPostId())
                     .child(currentUser!!.uid)
                     .setValue(true)
+                //the like belongs to the post publisher
+                addLikeNotification(post.getPublisherId(), post.getPostId())
             } else {
                 FirebaseDatabase.getInstance().reference
                     .child("Likes")
@@ -194,6 +199,37 @@ class PostAdapter
         })
     }
 
+    private fun publisherInfo(publisherProfileImage: CircleImageView, usernameTextView: TextView, publisherTextView: TextView, publisherId: String) {
+        val userRef = FirebaseDatabase.getInstance().reference.child("Users").child(publisherId)
+        userRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {}
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    val user = dataSnapshot.getValue<User>(User::class.java)
+                    Picasso.get().load(user!!.getUserImageUrl()).placeholder(R.drawable.profile).fit().into(publisherProfileImage)
+                    usernameTextView.text = user.getUsername()
+                    publisherTextView.text = user.getFullName()
+                }
+            }
+        })
+    }
+
+    private fun addLikeNotification(likeeId: String, postId: String) {
+        val notificationsRef = Firebase.database.reference
+            .child("Notifications")
+            .child(likeeId)//to whom that the like should belong
+        val notificationMap = HashMap<String, Any>()
+        notificationMap["userId"] = currentUser!!.uid
+        notificationMap["description"] = "liked your post"
+        notificationMap["postId"] = postId
+        notificationMap["isPost"] = true
+        notificationsRef.push().setValue(notificationMap).addOnCompleteListener {
+            if (it.isSuccessful) {
+
+            }
+        }
+    }
+
     class ViewHolder(@NonNull itemView: View) : RecyclerView.ViewHolder(itemView) {
         var username: TextView = itemView.findViewById(R.id.user_name_post)
         var publisherProfileImage: CircleImageView = itemView.findViewById(R.id.user_profile_image_post)
@@ -207,19 +243,5 @@ class PostAdapter
         var publisher: TextView = itemView.findViewById(R.id.publisher)
     }
 
-    private fun publisherInfo(publisherProfileImage: CircleImageView, usernameTextView: TextView, publisherTextView: TextView, publisherId: String) {
-        val userRef = FirebaseDatabase.getInstance().reference.child("Users").child(publisherId)
-        userRef.addValueEventListener(object: ValueEventListener {
-            override fun onCancelled(error: DatabaseError) {}
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if(dataSnapshot.exists()) {
-                    val user = dataSnapshot.getValue<User>(User::class.java)
-                    Picasso.get().load(user!!.getUserImageUrl()).placeholder(R.drawable.profile).fit().into(publisherProfileImage)
-                    usernameTextView.text = user.getUsername()
-                    publisherTextView.text = user.getFullName()
-                }
-            }
 
-        })
-    }
 }

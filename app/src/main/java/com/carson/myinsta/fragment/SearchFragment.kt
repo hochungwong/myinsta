@@ -62,7 +62,7 @@ class SearchFragment : Fragment() {
 
         mUsers = ArrayList<User>()
         userAdapter = context?.let {
-            UserAdapter(it, mUsers as ArrayList<User>, true)
+            UserAdapter(it, mUsers as ArrayList<User>, isFragment = true, isShowUsers = false)
         }
         recyclerView?.adapter = userAdapter
 
