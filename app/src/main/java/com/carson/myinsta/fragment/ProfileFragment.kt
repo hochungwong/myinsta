@@ -25,6 +25,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_profile.*
 import kotlinx.android.synthetic.main.fragment_profile.view.*
@@ -160,6 +162,8 @@ class ProfileFragment : Fragment() {
                             .child(it1.toString()) //follow the person clicked from list
                             .setValue(true)
                     }
+                    //create notification
+                    addFollowNotification()
                 }
                 //un-follow in profile page
                 "Following" -> {
@@ -194,17 +198,18 @@ class ProfileFragment : Fragment() {
             intent.putExtra("title", "following")
             startActivity(intent)
         }
-        return view
-    }
-
-    override fun onStart() {
-        super.onStart()
         getFollowers()
         getFollowings()
         userInfo()
         retrieveUserPhotos()
         getTotalNumberOfPosts()
         retrieveMySavedPostsIds()
+        return view
+    }
+
+    override fun onStart() {
+        super.onStart()
+
     }
 
     private fun checkFollowAndFollowingButtonStatus() {
@@ -295,7 +300,7 @@ class ProfileFragment : Fragment() {
                     (postsList as ArrayList<Post>).clear()
                     for (snapshot in dataSnapshot.children) {
                         val post = snapshot.getValue(Post::class.java)
-                        if (post?.getPublisherId().equals(currentUser.uid)) {
+                        if (post?.getPublisherId().equals(profileId)) {
                             (postsList as ArrayList<Post>).add(post!!)
                         }
                         (postsList as ArrayList<Post>).reverse()
@@ -374,6 +379,22 @@ class ProfileFragment : Fragment() {
                 }
             }
         })
+    }
+
+    private fun addFollowNotification() {
+        val notificationsRef = Firebase.database.reference
+            .child("Notifications")
+            .child(profileId)//to whom is followed
+        val notificationMap = HashMap<String, Any>()
+        notificationMap["userId"] = currentUser.uid
+        notificationMap["description"] = "start following you"
+        notificationMap["postId"] = ""
+        notificationMap["isPost"] = false
+        notificationsRef.push().setValue(notificationMap).addOnCompleteListener {
+            if (it.isSuccessful) {
+
+            }
+        }
     }
 
     override fun onStop() {
