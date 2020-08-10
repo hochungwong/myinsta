@@ -149,7 +149,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun retrieveStories() {
-        val storiesRef = Firebase.database.reference.child("Story")
+        val storiesRef = Firebase.database.reference.child("Stories")
         storiesRef.addValueEventListener(object: ValueEventListener {
             override fun onCancelled(error: DatabaseError) {}
 

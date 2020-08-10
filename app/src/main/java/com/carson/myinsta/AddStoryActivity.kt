@@ -6,44 +6,40 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.TextUtils
 import android.widget.Toast
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ServerValue
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.StorageTask
 import com.google.firebase.storage.UploadTask
 import com.theartofdev.edmodo.cropper.CropImage
-import kotlinx.android.synthetic.main.activity_account_settings.*
 import kotlinx.android.synthetic.main.activity_add_post.*
 
-class AddPostActivity : AppCompatActivity() {
-
+class AddStoryActivity : AppCompatActivity() {
     private var mUrl = ""
     private var imageUri: Uri? = null
 
     private var currentUser: FirebaseUser? = null
 
-    private var storagePostPicRef: StorageReference? = null
+    private var storageStoryPicRef: StorageReference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_post)
+        setContentView(R.layout.activity_add_story)
 
         currentUser = FirebaseAuth.getInstance().currentUser
-        storagePostPicRef = FirebaseStorage.getInstance().reference.child("post_images")
-
-        save_new_post_btn.setOnClickListener {
-            uploadPostImage()
-        }
+        storageStoryPicRef = FirebaseStorage.getInstance().reference.child("story_images")
 
         CropImage.activity()
-            .setAspectRatio(2, 1)
-            .start(this@AddPostActivity)
+            .setAspectRatio(9, 16)
+            .start(this@AddStoryActivity)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -51,21 +47,21 @@ class AddPostActivity : AppCompatActivity() {
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             val result = CropImage.getActivityResult(data)
             imageUri = result.uri
-            image_new_post.setImageURI(imageUri)
+            uploadStory()
         }
     }
 
-    private fun uploadPostImage() {
+    private fun uploadStory() {
         when (imageUri) {
-            null -> Toast.makeText(this, "Please select a post image.", Toast.LENGTH_LONG).show()
+            null -> Toast.makeText(this, "Please select a story image.", Toast.LENGTH_LONG).show()
             //TextUtils.isEmpty(description_new_post.text.toString()) -> Toast.makeText(this, "Please write some description for your post.", Toast.LENGTH_LONG).show()
             else -> {
                 val progressDialog = ProgressDialog(this)
-                progressDialog.setTitle("Adding new  post")
+                progressDialog.setTitle("Adding new story")
                 progressDialog.setMessage("Please wait, we are uploading your post...")
                 progressDialog.show()
 
-                val fileRef = storagePostPicRef!!.child(System.currentTimeMillis().toString() + ".jpg")
+                val fileRef = storageStoryPicRef!!.child(System.currentTimeMillis().toString() + ".jpg")
                 val uploadTask: StorageTask<*>
                 uploadTask = fileRef.putFile(imageUri!!)
                 uploadTask.continueWithTask(Continuation <UploadTask.TaskSnapshot, Task<Uri>> {
@@ -82,19 +78,22 @@ class AddPostActivity : AppCompatActivity() {
                         val downloadUrl = it.result
                         mUrl = downloadUrl.toString()
 
-                        val postsRef = FirebaseDatabase.getInstance().reference.child("Posts")
-                        val postId = postsRef.push().key// generate an id automatically
-                        val postsMap = HashMap<String, Any>()
-                        postsMap["postId"] = postId!!.toString()
-                        postsMap["description"] = description_new_post.text.toString()
-                        postsMap["publisherId"] = currentUser!!.uid
-                        postsMap["postImageUrl"] = mUrl
+                        val timeEnd = System.currentTimeMillis() + 86400000 // story will expire in a day
 
-                        postsRef.child(postId.toString()).updateChildren(postsMap).addOnCompleteListener { it1 ->
+                        val storiesRef = Firebase.database.reference.child("Stories")
+                        val storyId = storiesRef.push().key// generate an id automatically
+                        val storyMap = HashMap<String, Any>()
+                        storyMap["userId"] = currentUser!!.uid
+                        storyMap["storyId"] = storyId!!.toString()
+                        storyMap["timeStart"] = ServerValue.TIMESTAMP
+                        storyMap["timeEnd"] = timeEnd
+                        storyMap["imageUrl"] = mUrl
+
+                        storiesRef.child(storyId.toString()).updateChildren(storyMap).addOnCompleteListener { it1 ->
                             if (it1.isSuccessful) {
                                 progressDialog.dismiss()
-                                Toast.makeText(this, "Post has been uploaded successfully", Toast.LENGTH_LONG).show()
-                                val intent = Intent(this@AddPostActivity, MainActivity::class.java)
+                                Toast.makeText(this, "Story has been uploaded successfully", Toast.LENGTH_LONG).show()
+                                val intent = Intent(this@AddStoryActivity, MainActivity::class.java)
                                 startActivity(intent)
                                 finish()
                             }else {
