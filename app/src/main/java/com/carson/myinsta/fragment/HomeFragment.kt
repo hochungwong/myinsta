@@ -9,12 +9,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.carson.myinsta.R
 import com.carson.myinsta.adapter.PostAdapter
+import com.carson.myinsta.adapter.StoryAdapter
 import com.carson.myinsta.model.Post
+import com.carson.myinsta.model.Story
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -31,14 +36,23 @@ class HomeFragment : Fragment() {
 
     private final var TAG: String = HomeFragment::class.java.simpleName
 
+    private var currentUser: FirebaseUser? = null
+
     private var postAdapter: PostAdapter? = null
     private var postsList: MutableList<Post>? = null
+
+    private var storyAdapter: StoryAdapter? = null
+    private var storyList: MutableList<Story>? = null
+
     private var followingList: MutableList<String>? = null
 
     private var param1: String? = null
     private var param2: String? = null
 
-    var recyclerView: RecyclerView? = null
+    private var recyclerViewPosts: RecyclerView? = null
+    private var recyclerViewStories: RecyclerView? = null
+    private var postsLinearLayoutManager: LinearLayoutManager? = null
+    private var storiesLinearLayoutManager: LinearLayoutManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,21 +66,31 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        currentUser = FirebaseAuth.getInstance().currentUser
         // Inflate the layout for this fragment
         val view =  inflater.inflate(R.layout.fragment_home, container, false)
-
-        recyclerView = view.findViewById(R.id.recycler_view_home)
-        val linearLayoutManager = LinearLayoutManager(context)
-        linearLayoutManager.reverseLayout = true //newest at the top
-        linearLayoutManager.stackFromEnd = true
-        recyclerView?.layoutManager = linearLayoutManager
-
+        //recycler view for posts
+        recyclerViewPosts = view.findViewById(R.id.recycler_view_home)
+        postsLinearLayoutManager = LinearLayoutManager(context)
+        postsLinearLayoutManager?.reverseLayout = true //newest at the top
+        postsLinearLayoutManager?.stackFromEnd = true
+        recyclerViewPosts?.layoutManager = postsLinearLayoutManager
         postsList = ArrayList()
         postAdapter = context?.let {
             PostAdapter(it, postsList as ArrayList<Post>)
         }
-
-        recyclerView?.adapter = postAdapter
+        recyclerViewPosts?.adapter = postAdapter
+        //recycler view for stories
+        recyclerViewStories = view.findViewById(R.id.recycler_view_story)
+        storiesLinearLayoutManager = LinearLayoutManager(context)
+        storiesLinearLayoutManager?.reverseLayout = true //newest at the top
+        storiesLinearLayoutManager?.stackFromEnd = true
+        recyclerViewStories?.layoutManager = storiesLinearLayoutManager
+        storyList = ArrayList()
+        storyAdapter = context?.let {
+            StoryAdapter(it, storyList as ArrayList<Story>)
+        }
+        recyclerViewStories?.adapter = storyAdapter
 
         return view
     }
@@ -95,6 +119,7 @@ class HomeFragment : Fragment() {
                             (followingList as ArrayList<String>).add(it)
                         }
                         retrievePosts()
+                        retrieveStories()
                     }
                 }
             }
@@ -119,6 +144,34 @@ class HomeFragment : Fragment() {
                         postAdapter!!.notifyDataSetChanged()
                     }
                 }
+            }
+        })
+    }
+
+    private fun retrieveStories() {
+        val storiesRef = Firebase.database.reference.child("Story")
+        storiesRef.addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {}
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val timeCurrent = System.currentTimeMillis()
+                (storyList as ArrayList<Story>).clear()
+                (storyList as ArrayList<Story>).add(Story("", 0, 0, "", currentUser!!.uid))
+                for (id in followingList!!) {
+                    var countStory = 0
+                    var story: Story? = null
+                    for (s in snapshot.child(id.toString()).children) { //retrieve all the stories based on followingList
+                        story = s.getValue(Story::class.java)
+                        if (timeCurrent > story!!.getTimeStart() && timeCurrent < story!!.getTimeEnd()) {
+                            // story not expired
+                            countStory++
+                        }
+                    }
+                    if (countStory > 0) {
+                        (storyList as ArrayList<Story>).add(story!!)
+                    }
+                }
+                storyAdapter!!.notifyDataSetChanged()
             }
         })
     }
